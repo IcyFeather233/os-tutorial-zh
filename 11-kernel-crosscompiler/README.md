@@ -1,36 +1,31 @@
-*Concepts you may want to Google beforehand: cross-compiler*
+*你可能想事先谷歌的概念：交叉编译器*
 
-**Goal: Create a development environment to build your kernel**
+**目标：创建一个开发环境来构建你的内核**
 
-If you're using a Mac, you will need to do this process right away. Otherwise, it could have waited
-for a few more lessons. Anyway, you will need a cross-compiler once we jump to developing in a higher
-language, that is, C. [Read why](http://wiki.osdev.org/Why_do_I_need_a_Cross_Compiler%3F)
+如果你使用的是Mac，你需要立即进行这个过程。否则，它可能会等到几节课后再进行。无论如何，一旦我们跳到使用更高级别的语言（即C语言）进行开发，你将需要一个交叉编译器。[阅读为什么](http://wiki.osdev.org/Why_do_I_need_a_Cross_Compiler%3F)
 
-I'll be adapting the instructions [at the OSDev wiki](http://wiki.osdev.org/GCC_Cross-Compiler). 
+我将改编[OSDev wiki上的说明](http://wiki.osdev.org/GCC_Cross-Compiler)。
 
+所需包
+--------
 
-Required packages
------------------
-
-First, install the required packages. On linux, use your package distribution. On a Mac, [install brew](http://brew.sh/) if
-you didn't do it on lesson 00, and get those packages with `brew install`
+首先，安装所需的包。在Linux上，使用你的包分发工具。在Mac上，如果你在第00课中没有安装[brew](http://brew.sh/)，请安装它，并使用`brew install`获取这些包：
 
 - gmp
 - mpfr
 - libmpc
 - gcc
 
-Yes, we will need `gcc` to build our cross-compiled `gcc`, especially on a Mac where gcc has been deprecated for `clang`
+是的，我们将需要`gcc`来构建我们的交叉编译`gcc`，特别是在Mac上，gcc已经被弃用，取而代之的是`clang`。
 
-Once installed, find where your packaged gcc is (remember, not clang) and export it. For example:
+安装完成后，找到你的包`gcc`的位置（记住，不是`clang`）并导出它。例如：
 
 ```
 export CC=/usr/local/bin/gcc-4.9
 export LD=/usr/local/bin/gcc-4.9
 ```
 
-We will need to build binutils and a cross-compiled gcc, and we will put them into `/usr/local/i386elfgcc`, so
-let's export some paths now. Feel free to change them to your liking.
+我们需要构建binutils和一个交叉编译的gcc，并将它们放入`/usr/local/i386elfgcc`，所以现在让我们导出一些路径。你可以随意更改它们。
 
 ```
 export PREFIX="/usr/local/i386elfgcc"
@@ -41,12 +36,12 @@ export PATH="$PREFIX/bin:$PATH"
 binutils
 --------
 
-Remember: always be careful before pasting walls of text from the internet. I recommend copying line by line.
+记住：在从互联网粘贴大段文本之前，一定要小心。我建议逐行复制。
 
 ```sh
 mkdir /tmp/src
 cd /tmp/src
-curl -O http://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.gz # If the link 404's, look for a more recent version
+curl -O http://ftp.gnu.org/gnu/binutils/binutils-2.24.tar.gz # 如果链接404，请寻找更新的版本
 tar xf binutils-2.24.tar.gz
 mkdir binutils-build
 cd binutils-build
@@ -69,8 +64,6 @@ make install-gcc
 make install-target-libgcc 
 ```
 
-That's it! You should have all the GNU binutils and the compiler at `/usr/local/i386elfgcc/bin`, prefixed by `i386-elf-` to avoid
-collisions with your system's compiler and binutils.
+就是这样！你应该在`/usr/local/i386elfgcc/bin`中拥有所有的GNU binutils和编译器，前缀为`i386-elf-`，以避免与系统编译器和binutils发生冲突。
 
-You may want to add the `$PATH` to your `.bashrc`. From now on, on this tutorial, we will explicitly use the prefixes when using
-the cross-compiled gcc.
+你可能想将`$PATH`添加到你的`.bashrc`中。从现在开始，在本教程中，我们将明确使用前缀来使用交叉编译的gcc。

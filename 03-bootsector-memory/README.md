@@ -1,63 +1,78 @@
-*Concepts you may want to Google beforehand: memory offsets, pointers*
+*你可能想在之前谷歌的概念：内存偏移，指针*
 
-**Goal: Learn how the computer memory is organized**
+**目标：学习计算机内存的组织方式**
 
-Please open page 14 [of this document](
-http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)<sup>1</sup>
-and look at the figure with the memory layout.
+请打开[这份文档](http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)的第14页<sup>1</sup>，查看内存布局的图示。
 
-The only goal of this lesson is to learn where the boot sector is stored
+这节课的唯一目标是学习引导扇区的存储位置。
 
-I could just bluntly tell you that the BIOS places it at `0x7C00` and
-get it done with, but an example with wrong solutions will make things clearer.
+我可以直接告诉你BIOS将其放在`0x7C00`，但这会让事情变得模糊。通过错误的解决方案示例，事情会变得更清晰。
 
-We want to print an X on screen. We will try 4 different strategies
-and see which ones work and why.
+我们想在屏幕上打印一个X。我们将尝试四种不同的策略，看看哪些有效以及为什么。
 
-**Open the file `boot_sect_memory.asm`**
+**打开文件 `boot_sect_memory.asm`**
 
-First, we will define the X as data, with a label:
+首先，我们将X定义为数据，并加上标签：
 ```nasm
 the_secret:
     db "X"
 ```
 
-Then we will try to access `the_secret` in many different ways:
+然后我们将尝试以多种不同的方式访问`the_secret`：
 
 1. `mov al, the_secret`
 2. `mov al, [the_secret]`
 3. `mov al, the_secret + 0x7C00`
-4. `mov al, 2d + 0x7C00`, where `2d` is the actual position of the 'X' byte in the binary
+4. `mov al, 2d + 0x7C00`，其中`2d`是二进制文件中'X'字节的实际位置
 
-Take a look at the code and read the comments.
+查看代码并阅读注释。
 
-Compile and run the code. You should see a string similar to `1[2¢3X4X`, where
-the bytes following 1 and 2 are just random garbage.
+编译并运行代码。
 
-If you add or remove instructions, remember to compute the new offset of the X
-by counting the bytes, and replace `0x2d` with the new one.
+`nasm -fbin boot_sect_memory.asm -o boot_sect_memory.bin`
 
-Please don't continue onto the next section unless you have 100% understood
-the boot sector offset and memory addressing.
+`qemu boot_sect_memory.bin` 或 `qemu-system-x86_64 boot_sect_memory.bin`
 
+你应该会看到类似于`1[2¢3X4X`的字符串，其中1和2后面的字节只是随机垃圾。
 
-The global offset
+如果你添加或删除指令，记得通过计算字节数来计算X的新偏移量，并用新的偏移量替换`0x2d`。
+
+除非你完全理解引导扇区偏移和内存寻址，否则请不要继续下一节。
+
+全局偏移
 -----------------
 
-Now, since offsetting `0x7c00` everywhere is very inconvenient, assemblers let
-us define a "global offset" for every memory location, with the `org` command:
+现在，由于在每个地方都偏移`0x7c00`非常不方便，汇编器允许我们使用`org`命令为每个内存位置定义一个“全局偏移”：
 
 ```nasm
 [org 0x7c00]
 ```
 
-Go ahead and **open `boot_sect_memory_org.asm`** and you will see the canonical
-way to print data with the boot sector, which is now attempt 2. Compile the code
-and run it, and you will see how the `org` command affects each previous solution.
+继续**打开 `boot_sect_memory_org.asm`**，你会看到使用引导扇区打印数据的规范方式，现在是尝试2。编译代码并运行它，你会看到`org`命令如何影响每个之前的解决方案。
 
-Read the comments for a full explanation of the changes with and without `org`
+`nasm -fbin boot_sect_memory_org.asm -o boot_sect_memory_org.bin`
+
+`qemu boot_sect_memory_org.bin` 或 `qemu-system-x86_64 boot_sect_memory_org.bin`
+
+阅读注释以获得有和无`org`的完整解释。
+
+`[org 0x7c00]`
+-----------------
+
+`[org 0x7c00]` 是一个汇编语言指令，用于设置程序的起始地址。具体来说，它告诉汇编器和链接器，程序的代码和数据应该从内存地址 `0x7c00` 开始存放。这个地址是BIOS在加载引导扇区时使用的标准地址。
+
+详细解释如下：
+
+1. **BIOS加载引导扇区**：当计算机启动时，BIOS会从硬盘的第一个扇区（引导扇区）读取512字节的数据，并将其加载到内存地址 `0x7c00` 处。这个地址是BIOS规定的标准地址，用于存放引导程序。
+
+2. **地址偏移问题**：如果不使用 `[org 0x7c00]`，汇编器和链接器会假设程序从内存地址 `0x0000` 开始存放。这样，所有的内存地址引用（如标签和变量）都会基于 `0x0000` 进行计算。然而，当BIOS将引导扇区加载到 `0x7c00` 时，这些地址引用就会出错，因为它们实际上是从 `0x7c00` 开始的。
+
+3. **解决地址偏移问题**：通过使用 `[org 0x7c00]`，汇编器和链接器会自动调整所有的内存地址引用，使它们基于 `0x7c00` 进行计算。这样，当BIOS将引导扇区加载到 `0x7c00` 时，所有的地址引用都会正确地指向实际的内存位置。
+
+例如，在代码中有一个标签 `the_secret`，它指向一个字符 `'X'`。如果不使用 `[org 0x7c00]`，汇编器会假设 `the_secret` 的地址是相对于 `0x0000` 的。使用 `[org 0x7c00]` 后，汇编器会自动调整 `the_secret` 的地址，使其相对于 `0x7c00`，这样在实际运行时，`the_secret` 就能正确地指向 `0x7c00` 加上其相对于程序起始位置的偏移量。
+
+总结来说，`[org 0x7c00]` 的作用是确保程序中的所有内存地址引用在BIOS加载引导扇区到 `0x7c00` 时能够正确地指向实际的内存位置。
 
 -----
 
-[1] This whole tutorial is heavily inspired on that document. Please read the
-root-level README for more information on that.
+[1] 整个教程深受该文档的启发。请阅读根级README以获取更多信息。

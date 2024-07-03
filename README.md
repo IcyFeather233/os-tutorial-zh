@@ -1,96 +1,80 @@
 os-tutorial
 ===========
 
-_⚠️ Hey! This is an old, abandoned project, with both technical and design issues [listed here](https://github.com/cfenollosa/os-tutorial/issues/269). Please have fun with this tutorial but do look for more modern and authoritative sources if you want to learn about OS design. ⚠️_
+_⚠️ 嘿！这是一个旧的、被遗弃的项目，存在技术和设计问题 [列在这里](https://github.com/cfenollosa/os-tutorial/issues/269)。请尽情享受这个教程，但如果您想学习操作系统设计，请寻找更现代和权威的资源。⚠️_
 
-How to create an OS from scratch!
+如何从零开始创建一个操作系统！
 
-I have always wanted to learn how to make an OS from scratch. In college I was taught
-how to implement advanced features (pagination, semaphores, memory management, etc)
-but:
+我一直想学习如何从零开始制作一个操作系统。在大学里，我学习了如何实现高级功能（分页、信号量、内存管理等），但是：
 
-- I never got to start from my own boot sector
-- College is hard so I don't remember most of it.
-- I'm fed up with people who think that reading an already existing kernel, even if small, is 
-a good idea to learn operating systems.
+- 我从未从自己的引导扇区开始
+- 大学很难，所以我大部分都不记得了。
+- 我厌倦了那些认为阅读一个已经存在的内核，即使很小，也是学习操作系统的好主意的人。
 
-Inspired by [this document](http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)
-and the [OSDev wiki](http://wiki.osdev.org/), I'll try to make short step-by-step READMEs and
-code samples for anybody to follow. Honestly, this tutorial is basically the first document but
-split into smaller pieces and without the theory.
+受[这份文档](http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)和[OSDev wiki](http://wiki.osdev.org/)的启发，我将尝试制作简短的逐步README和代码示例，供任何人跟随。老实说，这个教程基本上是第一份文档，但分成更小的部分，没有理论。
 
-Updated: more sources: [the little book about OS development](https://littleosbook.github.io),
-[JamesM's kernel development tutorials](https://web.archive.org/web/20160412174753/http://www.jamesmolloy.co.uk/tutorial_html/index.html)
+更新：更多资源：[关于操作系统开发的小书](https://littleosbook.github.io)，[JamesM的内核开发教程](https://web.archive.org/web/20160412174753/http://www.jamesmolloy.co.uk/tutorial_html/index.html)
 
 
-Features
+特点
 --------
 
-- This course is a code tutorial aimed at people who are comfortable with low level computing. For example,
-programmers who have curiosity on how an OS works but don't have the time or willpower to start reading the Linux kernel
-top to bottom.
-- There is little theory. Yes, this is a feature. Google is your theory lecturer. Once you pass college, 
-excessive theory is worse than no theory because it makes things seem more difficult than they really are.
-- The lessons are tiny and may take 5-15 minutes to complete. Trust me and trust yourself. You can do it!
+- 这门课程是一个代码教程，面向对低级计算感到舒适的人。例如，对操作系统如何工作感到好奇但没时间或意愿从头到尾阅读Linux内核的程序员。
+- 理论很少。是的，这是一个特点。谷歌是你的理论讲师。一旦你过了大学，过多的理论比没有理论更糟糕，因为它使事情看起来比实际情况更难。
+- 课程很小，可能需要5-15分钟完成。相信我，也相信你自己。你可以做到！
 
 
-How to use this tutorial
+如何使用这个教程
 ------------------------
 
-1. Start with the first folder and go down in order. They build on previous code, so if 
-you jump right to folder 05 and don't know why there is a `mov ah, 0x0e`, it's because you missed lecture 02.
-Really, just go in order. You can always skip stuff you already know.
+1. 从第一个文件夹开始，按顺序往下。它们建立在之前的代码上，所以如果你直接跳到文件夹05，不知道为什么有一个`mov ah, 0x0e`，那是因为你错过了第02课。真的，按顺序来。你总是可以跳过你已经知道的东西。
 
-2. Open the README and read the first line, which details the concepts you should be familiar with
-before reading the code. Google concepts you are not familiar with. The second line states the goals for each lesson. 
-Read them, because they explain why we do what we do. The "why" is as important as the "how".
+2. 打开README并阅读第一行，这详细说明了在阅读代码之前你应该熟悉的概念。谷歌你不熟悉的概念。第二行说明了每个课程的目标。阅读它们，因为它们解释了我们为什么这样做。“为什么”和“如何”同样重要。
  
-3. Read the rest of the README. It is **very concise**.
+3. 阅读README的其余部分。它非常简洁。
 
-4. (Optional) Try to write the code files by yourself after reading the README.
+4. （可选）在阅读README后尝试自己编写代码文件。
 
-5. Look at the code examples. They are extremely well commented.
+5. 查看代码示例。它们注释得非常好。
 
-6. (Optional) Experiment with them and try to break things. The only way to make sure you understood something is
-trying to break it or replicate it with different commands.
-
-
-TL;DR: First read the README on each folder, then the code files. If you're brave, try to code them yourself.
+6. （可选）尝试使用它们并试图破坏它们。确保你理解某事的唯一方法是尝试破坏它或用不同的命令复制它。
 
 
-Strategy
+TL;DR：首先阅读每个文件夹中的README，然后阅读代码文件。如果你勇敢，尝试自己编写代码。
+
+
+策略
 --------
 
-We will want to do many things with our OS:
+我们希望用我们的操作系统做很多事情：
 
-- Boot from scratch, without GRUB - DONE!
-- Enter 32-bit mode - DONE
-- Jump from Assembly to C - DONE!
-- Interrupt handling - DONE!
-- Screen output and keyboard input - DONE!
-- A tiny, basic `libc` which grows to suit our needs - DONE!
-- Memory management
-- Write a filesystem to store files
-- Create a very simple shell
-- User mode
-- Maybe we will write a simple text editor
-- Multiple processes and scheduling
+- 从零开始启动，不使用GRUB - 已完成！
+- 进入32位模式 - 已完成
+- 从汇编跳转到C - 已完成！
+- 中断处理 - 已完成！
+- 屏幕输出和键盘输入 - 已完成！
+- 一个微小、基本的`libc`，随着我们的需求增长 - 已完成！
+- 内存管理
+- 编写一个文件系统来存储文件
+- 创建一个非常简单的shell
+- 用户模式
+- 也许我们会写一个简单的文本编辑器
+- 多进程和调度
 
-Probably we will go through them in that order, however it's soon to tell.
+可能我们会按这个顺序进行，但很快就会知道。
 
-If we feel brave enough:
+如果我们感觉足够勇敢：
 
-- A BASIC interpreter, like in the 70s!
-- A GUI
-- Networking
+- 一个BASIC解释器，就像70年代那样！
+- 一个GUI
+- 网络
 
 
-
-Contributing
+贡献
 ------------
 
-This is a personal learning project, and even though it hasn't been updated for a long time, I still have hopes to get into it at some point.
+这是一个个人学习项目，尽管很长时间没有更新，但我仍然希望在某个时候继续进行。
 
-I'm thankful to all those who have pointed out bugs and submitted pull requests. I will need some time to review everything and I cannot guarantee that at this moment.
+感谢所有指出错误并提交拉取请求的人。我需要一些时间来审查所有内容，我不能保证现在能做到。
 
-Please feel free to fork this repo. If many of you are interested in continuing the project, let me know and I'll link the "main fork" from here.
+请随意fork这个仓库。如果你们中的许多人有兴趣继续这个项目，请告诉我，我会从这里链接到“主要fork”。

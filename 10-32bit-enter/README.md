@@ -1,23 +1,23 @@
-*Concepts you may want to Google beforehand: interrupts, pipelining*
+*你可能想事先谷歌的概念：中断，流水线*
 
-**Goal: Enter 32-bit protected mode and test our code from previous lessons**
+**目标：进入32位保护模式并测试我们之前的代码**
 
-To jump into 32-bit mode:
+要跳入32位模式：
 
-1. Disable interrupts
-2. Load our GDT
-3. Set a bit on the CPU control register `cr0`
-4. Flush the CPU pipeline by issuing a carefully crafted far jump
-5. Update all the segment registers
-6. Update the stack
-7. Call to a well-known label which contains the first useful code in 32 bits
+1. 禁用中断
+2. 加载我们的GDT
+3. 在CPU控制寄存器`cr0`上设置一个位
+4. 通过发出一个精心设计的远跳转来刷新CPU流水线
+5. 更新所有段寄存器
+6. 更新堆栈
+7. 调用一个众所周知的标签，其中包含32位中的第一个有用代码
 
-We will encapsulate this process on the file `32bit-switch.asm`. Open it
-and take a look at the code.
+我们将把这个过程封装在文件`32bit-switch.asm`中。打开它并查看代码。
 
-After entering 32-bit mode, we will call `BEGIN_PM` which is the entry point
-for our actual useful code (e.g. kernel code, etc). You can read the code
-at `32bit-main.asm`. Compile and run this last file and you will see the two 
-messages on the screen.
+进入32位模式后，我们将调用`BEGIN_PM`，这是我们实际有用代码的入口点（例如内核代码等）。你可以在`32bit-main.asm`中阅读代码。编译并运行最后一个文件，你将在屏幕上看到两条消息。
 
-Congratulations! Our next step will be to write a simple kernel
+恭喜！我们的下一步将是编写一个简单的内核。
+
+`nasm -fbin 32bit-main.asm -o 32bit-main.bin`
+
+`qemu 32bit-main.bin` 或 `qemu-system-x86_64 32bit-main.bin`

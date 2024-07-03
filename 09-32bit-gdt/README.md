@@ -1,31 +1,21 @@
-*Concepts you may want to Google beforehand: GDT*
+*你可能想在之前Google的概念：GDT*
 
-**Goal: program the GDT**
+**目标：编程GDT**
 
-Remember segmentation from lesson 6? The offset was left shifted
-to address an extra level of indirection.
+还记得第六课的分段吗？偏移量被左移以处理额外的间接层。
 
-In 32-bit mode, segmentation works differently. Now, the offset becomes an
-index to a segment descriptor (SD) in the GDT. This descriptor defines
-the base address (32 bits), the size (20 bits) and some flags, like
-readonly, permissions, etc. To add confusion, the data structures are split,
-so open the os-dev.pdf file and check out the figure on page 34 or the 
-Wikipedia page for the GDT.
+在32位模式下，分段的工作方式不同。现在，偏移量变成了GDT中段描述符（SD）的索引。这个描述符定义了基地址（32位）、大小（20位）和一些标志，如只读、权限等。为了增加混淆，数据结构是分开的，所以打开os-dev.pdf文件并查看第34页的图表或GDT的Wikipedia页面。
 
-The easiest way to program the GDT is to define two segments, one for code
-and another for data. These can overlap which means there is no memory protection,
-but it's good enough to boot, we'll fix this later with a higher language.
+编程GDT的最简单方法是定义两个段，一个用于代码，另一个用于数据。这些可以重叠，这意味着没有内存保护，但对于启动来说已经足够了，我们稍后会用更高级别的语言来修复这个问题。
 
-As a curiosity, the first GDT entry must be `0x00` to make sure that the
-programmer didn't make any mistakes managing addresses.
+作为一个好奇点，第一个GDT条目必须是`0x00`，以确保程序员在管理地址时没有犯任何错误。
 
-Furthermore, the CPU can't directly load the GDT address, but it requires
-a meta structure called the "GDT descriptor" with the size (16b) and address
-(32b) of our actual GDT. It is loaded with the `lgdt` operation.
+此外，CPU不能直接加载GDT地址，而是需要一个称为“GDT描述符”的元结构，其中包含我们实际GDT的大小（16位）和地址（32位）。它通过`lgdt`操作加载。
 
-Let's directly jump to the GDT code in assembly. Again, to understand
-all the segment flags, refer to the os-dev.pdf document. The theory for
-this lesson is quite complex.
+让我们直接跳到汇编中的GDT代码。同样，要理解所有段标志，请参考os-dev.pdf文档。本课的理论非常复杂。
 
-In the next lesson we will make the switch to 32-bit protected mode
-and test our code from these lessons.
+在下一课中，我们将切换到32位保护模式，并测试这些课程中的代码。
+
+`nasm -fbin 32bit-gdt.asm -o 32bit-gdt.bin`
+
+`qemu 32bit-gdt.bin` 或 `qemu-system-x86_64 32bit-gdt.bin`

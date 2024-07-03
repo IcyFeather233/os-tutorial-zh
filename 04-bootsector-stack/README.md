@@ -1,15 +1,17 @@
-*Concepts you may want to Google beforehand: stack*
+*你可能想事先谷歌的概念：栈*
 
-**Goal: Learn how to use the stack**
+**目标：学习如何使用栈**
 
-The usage of the stack is important, so we'll write yet another boot sector
-with an example.
+栈的使用非常重要，所以我们将编写另一个引导扇区示例。
 
-Remember that the `bp` register stores the base address (i.e. bottom) of the stack,
-and `sp` stores the top, and that the stack grows downwards from `bp` (i.e. `sp` gets
-decremented)
+记住，`bp` 寄存器存储栈的基地址（即底部），`sp` 存储栈顶，栈从 `bp` 向下增长（即 `sp` 递减）。
 
-This lesson is quite straightforward, so jump ahead to the code.
+这节课非常直接，所以直接跳到代码部分。
 
-I suggest that you try accessing in-stack memory addresses by yourself, 
-at different points in the code, and see what happens.
+我建议你在代码的不同点尝试访问栈内存地址，看看会发生什么。
+
+`nasm -fbin boot_sect_stack.asm -o boot_sect_stack.bin`
+
+`qemu boot_sect_stack.bin` 或 `qemu-system-x86_64 boot_sect_stack.bin`
+
+运行后显示 `A CBA `

@@ -1,43 +1,37 @@
-*Concepts you may want to Google beforehand: control structures,
-function calling, strings*
+*你可能想事先谷歌的概念：控制结构、函数调用、字符串*
 
-**Goal: Learn how to code basic stuff (loops, functions) with the assembler**
+**目标：学习如何用汇编器编写基本的东西（循环、函数）**
 
-We are close to our definitive boot sector.
+我们即将完成最终的引导扇区。
 
-In lesson 7 we will start reading from the disk, which is the last step before
-loading a kernel. But first, we will write some code with control structures,
-function calling, and full strings usage. We really need to be comfortable with
-those concepts before jumping to the disk and the kernel.
+在第7课中，我们将开始从磁盘读取数据，这是加载内核之前的最后一步。但首先，我们将编写一些使用控制结构、函数调用和完整字符串的代码。在跳转到磁盘和内核之前，我们真的需要对这些概念感到舒适。
 
 
-Strings
+字符串
 -------
 
-Define strings like bytes, but terminate them with a null-byte (yes, like C)
-to be able to determine their end.
+定义字符串像定义字节一样，但用空字节（是的，像C语言一样）来终止它们，以便能够确定它们的结束。
 
 ```nasm
 mystring:
     db 'Hello, World', 0
 ```
 
-Notice that text surrounded with quotes is converted to ASCII by the assembler,
-while that lone zero will be passed as byte `0x00` (null byte)
+注意，用引号包围的文本由汇编器转换为ASCII码，而那个单独的零将被传递为字节 `0x00`（空字节）
 
 
-Control structures
+控制结构
 ------------------
 
-We have already used one: `jmp $` for the infinite loop.
+我们已经使用了一个：`jmp $` 用于无限循环。
 
-Assembler jumps are defined by the *previous* instruction result. For example:
+汇编跳转由*前一个*指令的结果定义。例如：
 
 ```nasm
-cmp ax, 4      ; if ax = 4
-je ax_is_four  ; do something (by jumping to that label)
-jmp else       ; else, do another thing
-jmp endif      ; finally, resume the normal flow
+cmp ax, 4      ; 如果 ax = 4
+je ax_is_four  ; 做一些事情（通过跳转到那个标签）
+jmp else       ; 否则，做另一件事
+jmp endif      ; 最后，恢复正常的流程
 
 ax_is_four:
     .....
@@ -45,28 +39,27 @@ ax_is_four:
 
 else:
     .....
-    jmp endif  ; not actually necessary but printed here for completeness
+    jmp endif  ; 实际上不是必需的，但为了完整性打印在这里
 
 endif:
 ```
 
-Think in your head in high level, then convert it to assembler in this fashion.
+在脑海中以高级思维思考，然后以这种方式转换为汇编。
 
-There are many `jmp` conditions: if equal, if less than, etc. They are pretty 
-intuitive but you can always Google them
+有很多 `jmp` 条件：如果相等，如果小于等。它们非常直观，但你可以随时谷歌它们
 
 
-Calling functions
+调用函数
 -----------------
 
-As you may suppose, calling a function is just a jump to a label.
+正如你可能猜到的，调用函数只是跳转到标签。
 
-The tricky part are the parameters. There are two steps to working with parameters:
+棘手的部分是参数。处理参数有两个步骤：
 
-1. The programmer knows they share a specific register or memory address
-2. Write a bit more code and make function calls generic and without side effects
+1. 程序员知道它们共享一个特定的寄存器或内存地址
+2. 编写更多的代码，使函数调用通用且没有副作用
 
-Step 1 is easy. Let's just agree that we will use `al` (actually, `ax`) for the parameters.
+第一步很简单。我们只需同意我们将使用 `al`（实际上，`ax`）作为参数。
 
 ```nasm
 mov al, 'X'
@@ -76,60 +69,203 @@ endprint:
 ...
 
 print:
-    mov ah, 0x0e  ; tty code
-    int 0x10      ; I assume that 'al' already has the character
-    jmp endprint  ; this label is also pre-agreed
+    mov ah, 0x0e  ; tty 代码
+    int 0x10      ; 我假设 'al' 已经有字符
+    jmp endprint  ; 这个标签也是预先约定的
 ```
 
-You can see that this approach will quickly grow into spaghetti code. The current
-`print` function will only return to `endprint`. What if some other function
-wants to call it? We are killing code reusage.
+你可以看到，这种方法很快就会变成意大利面条代码。当前的 `print` 函数只会返回到 `endprint`。如果其他函数想调用它怎么办？我们正在扼杀代码重用。
 
-The correct solution offers two improvements:
+正确的解决方案提供了两个改进：
 
-- We will store the return address so that it may vary
-- We will save the current registers to allow subfunctions to modify them
-  without any side effects
+- 我们将存储返回地址，以便它可以变化
+- 我们将保存当前寄存器，以允许子函数修改它们而没有任何副作用
 
-To store the return address, the CPU will help us. Instead of using a couple of
-`jmp` to call subroutines, use `call` and `ret`.
+为了存储返回地址，CPU 会帮助我们。与其使用一对 `jmp` 来调用子程序，不如使用 `call` 和 `ret`。
 
-To save the register data, there is also a special command which uses the stack: `pusha`
-and its brother `popa`, which pushes all registers to the stack automatically and
-recovers them afterwards.
+为了保存寄存器数据，还有一个特殊的命令使用堆栈：`pusha` 和它的兄弟 `popa`，它们自动将所有寄存器推入堆栈并在之后恢复它们。
 
-
-Including external files
+`call` 和 `ret`
 ------------------------
 
-I assume you are a programmer and don't need to convince you why this is
-a good idea.
+在汇编语言中，`call` 和 `ret` 指令是用于函数调用和返回的关键指令。它们通常一起使用，以实现程序的模块化和代码的重用。下面是对这两个指令的详细介绍：
 
-The syntax is
+`call` 指令用于调用一个子程序（函数）。它的工作原理是将当前指令的下一条指令的地址（即返回地址）压入堆栈，然后跳转到指定的子程序入口地址。
+
+语法
+
+```asm
+call label
+call address
+```
+
+- `label`：子程序的标签。
+- `address`：子程序的地址。
+
+工作原理
+
+1. 将当前指令的下一条指令的地址（返回地址）压入堆栈。
+2. 跳转到指定的子程序入口地址。
+
+`ret` 指令用于从子程序返回。它的工作原理是从堆栈中弹出返回地址，然后跳转到该地址继续执行。
+
+语法
+
+```asm
+ret
+```
+
+工作原理
+
+1. 从堆栈中弹出返回地址。
+2. 跳转到该返回地址继续执行。
+
+示例
+
+下面是一个简单的汇编程序示例，展示了如何使用 `call` 和 `ret` 指令来调用和返回子程序。
+
+```asm
+section .data
+    msg db 'Hello, World!', 0xA, 0
+    msg_len equ $ - msg
+
+section .text
+    global _start
+
+_start:
+    ; 调用打印函数
+    call print_message
+
+    ; 退出程序
+    mov eax, 1          ; sys_exit 系统调用号
+    xor ebx, ebx        ; 返回码 0
+    int 0x80            ; 触发系统调用
+
+print_message:
+    ; 打印消息
+    mov eax, 4          ; sys_write 系统调用号
+    mov ebx, 1          ; 文件描述符 1 (stdout)
+    mov ecx, msg        ; 消息地址
+    mov edx, msg_len    ; 消息长度
+    int 0x80            ; 触发系统调用
+
+    ; 从子程序返回
+    ret
+```
+
+解释
+
+1. `_start` 标签是程序的入口点。
+2. `call print_message` 调用 `print_message` 子程序。
+3. `print_message` 子程序中，使用系统调用 `sys_write` 打印消息。
+4. `ret` 指令从 `print_message` 子程序返回。
+5. 返回后，程序继续执行 `_start` 标签中的后续代码，即退出程序。
+
+通过这种方式，`call` 和 `ret` 指令实现了子程序的调用和返回，使得代码更加模块化和易于维护。
+
+`pusha` 和 `popa`
+------------------------
+
+在x86汇编语言中，`pusha` 和 `popa` 是用于保存和恢复所有通用寄存器的指令。这两个指令在处理中断、函数调用或任何需要保存当前寄存器状态的场景中非常有用。
+
+`pusha` 指令用于将所有通用寄存器的当前值压入堆栈。具体来说，`pusha` 按照以下顺序将寄存器的值压入堆栈：
+
+1. `AX`
+2. `CX`
+3. `DX`
+4. `BX`
+5. `SP`（当前堆栈指针的值）
+6. `BP`
+7. `SI`
+8. `DI`
+
+`pusha` 指令的语法非常简单：
+
+```asm
+pusha
+```
+
+`popa` 指令用于从堆栈中弹出值并恢复所有通用寄存器的值。具体来说，`popa` 按照以下顺序从堆栈中弹出值并恢复寄存器的值：
+
+1. `DI`
+2. `SI`
+3. `BP`
+4. `SP`（堆栈指针的值不会被恢复，因为它在`pusha`时被压入堆栈的值是当前的`SP`值）
+5. `BX`
+6. `DX`
+7. `CX`
+8. `AX`
+
+`popa` 指令的语法也非常简单：
+
+```asm
+popa
+```
+
+示例
+
+以下是一个简单的示例，展示了如何在汇编代码中使用 `pusha` 和 `popa` 指令：
+
+```asm
+section .data
+    ; 数据段
+
+section .bss
+    ; 未初始化数据段
+
+section .text
+    global _start
+
+_start:
+    ; 保存所有寄存器
+    pusha
+
+    ; 在这里进行一些操作，可能会修改寄存器的值
+    mov ax, 1
+    mov bx, 2
+    mov cx, 3
+    mov dx, 4
+    mov si, 5
+    mov di, 6
+    mov bp, 7
+
+    ; 恢复所有寄存器
+    popa
+
+    ; 退出程序
+    mov eax, 1          ; sys_exit 系统调用号
+    xor ebx, ebx        ; 返回码 0
+    int 0x80            ; 调用内核
+```
+
+在这个示例中，`pusha` 指令用于保存所有寄存器的当前值，然后在进行一些操作后，使用 `popa` 指令恢复这些寄存器的值。这样可以确保在操作过程中不会丢失寄存器的原始值。
+
+包含外部文件
+------------------------
+
+我假设你是一个程序员，不需要说服你为什么这是一个好主意。
+
+语法是
 ```nasm
 %include "file.asm"
 ```
 
 
-Printing hex values
+打印十六进制值
 -------------------
 
-In the next lesson we will start reading from disk, so we need some way
-to make sure that we are reading the correct data. File `boot_sect_print_hex.asm`
-extends `boot_sect_print.asm` to print hex bytes, not just ASCII chars.
+在下一课中，我们将开始从磁盘读取数据，所以我们需要一些方法来确保我们读取了正确的数据。文件 `boot_sect_print_hex.asm` 扩展了 `boot_sect_print.asm` 以打印十六进制字节，而不仅仅是 ASCII 字符。
 
 
-Code! 
+代码！
 -----
 
-Let's jump to the code. File `boot_sect_print.asm` is the subroutine which will
-get `%include`d in the main file. It uses a loop to print bytes on screen.
-It also includes a function to print a newline. The familiar `'\n'` is
-actually two bytes, the newline char `0x0A` and a carriage return `0x0D`. Please
-experiment by removing the carriage return char and see its effect.
+让我们跳到代码。文件 `boot_sect_print.asm` 是将在主文件中被 `%include` 的子程序。它使用循环在屏幕上打印字节。它还包括一个打印换行符的函数。熟悉的 `'\n'` 实际上是两个字节，换行符 `0x0A` 和一个回车符 `0x0D`。请通过删除回车符并查看其效果来实验。
 
-As stated above, `boot_sect_print_hex.asm` allows for printing of bytes.
+如上所述，`boot_sect_print_hex.asm` 允许打印字节。
 
-The main file `boot_sect_main.asm` loads a couple strings and bytes,
-calls `print` and `print_hex` and hangs. If you understood
-the previous sections, it's quite straightforward.
+主文件 `boot_sect_main.asm` 加载一些字符串和字节，调用 `print` 和 `print_hex` 并挂起。如果你理解了前面的部分，这是非常直接的。
+
+`nasm -fbin boot_sect_main.asm -o boot_sect_main.bin`
+
+`qemu boot_sect_main.bin` 或 `qemu-system-x86_64 boot_sect_main.bin`
